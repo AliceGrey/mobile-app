@@ -31,12 +31,14 @@ class PairPage extends HookWidget implements CobbleScreen {
   @override
   Widget build(BuildContext context) {
     final pairedStorage = useProvider(pairedStorageProvider);
-    final isFirstTime = useState(true);
+    final isFirstTimeState = useState(AsyncValue<bool>.loading());
+    final isFirstTime = isFirstTimeState.value.data;
     final scan = useProvider(scanProvider.state);
     final pair = useProvider(pairProvider.state);
 
     useEffect(() {
-      if (pair == null || scan.devices.isEmpty) return null;
+      if (pair == null || scan.devices.isEmpty || isFirstTime == null)
+        return null;
 
       PebbleScanDevice dev = scan.devices.firstWhere(
         (element) => element.address == pair,
@@ -53,19 +55,15 @@ class PairPage extends HookWidget implements CobbleScreen {
         context.pushReplacement(HomePage());
       }
       return null;
-    }, [scan, pair, isFirstTime.value]);
+    }, [scan, pair, isFirstTime]);
 
-    /// TODO This is brittle.
-    /// What if [_Callbacks.onWatchPairComplete] get called before this effect
-    /// is run? We should figure out [isFirstTime] value before we show this
-    /// screen
     useEffect(() {
       SharedPreferences.getInstance().then((prefs) {
-        isFirstTime.value = !prefs.containsKey("firstRun");
+        isFirstTimeState.value =
+            AsyncValue.data(!prefs.containsKey("firstRun"));
       });
-
-      return () {};
-    });
+      return null;
+    }, []);
 
     useEffect(() {
       scanControl.startBleScan();
@@ -185,7 +183,7 @@ class PairPage extends HookWidget implements CobbleScreen {
             textColor: Theme.of(context).accentColor,
             onPressed: _refreshDevicesClassic,
           ),
-          if (!isFirstTime.value)
+          if (isFirstTime?.value == false)
             FlatButton(
               child: Text("SKIP"),
               padding: EdgeInsets.symmetric(horizontal: 32.0),
