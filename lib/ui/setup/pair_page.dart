@@ -14,31 +14,27 @@ import 'package:cobble/ui/setup/more_setup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 final ConnectionControl connectionControl = ConnectionControl();
 final UiConnectionControl uiConnectionControl = UiConnectionControl();
 final ScanControl scanControl = ScanControl();
 
 class PairPage extends HookWidget implements CobbleScreen {
-  final bool showSkipButton;
+  final bool fromLanding;
 
   const PairPage({
     Key key,
-    this.showSkipButton = false,
+    this.fromLanding = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final pairedStorage = useProvider(pairedStorageProvider);
-    final isFirstTimeState = useState(AsyncValue<bool>.loading());
-    final isFirstTime = isFirstTimeState.value.data;
     final scan = useProvider(scanProvider.state);
     final pair = useProvider(pairProvider.state);
 
     useEffect(() {
-      if (pair == null || scan.devices.isEmpty || isFirstTime == null)
-        return null;
+      if (pair == null || scan.devices.isEmpty) return null;
 
       PebbleScanDevice dev = scan.devices.firstWhere(
         (element) => element.address == pair,
@@ -49,21 +45,13 @@ class PairPage extends HookWidget implements CobbleScreen {
 
       pairedStorage.register(dev);
 
-      if (isFirstTime.value) {
+      if (fromLanding) {
         context.pushReplacement(MoreSetup());
       } else {
         context.pushReplacement(HomePage());
       }
       return null;
-    }, [scan, pair, isFirstTime]);
-
-    useEffect(() {
-      SharedPreferences.getInstance().then((prefs) {
-        isFirstTimeState.value =
-            AsyncValue.data(!prefs.containsKey("firstRun"));
-      });
-      return null;
-    }, []);
+    }, [scan, pair]);
 
     useEffect(() {
       scanControl.startBleScan();
@@ -183,7 +171,7 @@ class PairPage extends HookWidget implements CobbleScreen {
             textColor: Theme.of(context).accentColor,
             onPressed: _refreshDevicesClassic,
           ),
-          if (isFirstTime?.value == false)
+          if (!fromLanding)
             FlatButton(
               child: Text("SKIP"),
               padding: EdgeInsets.symmetric(horizontal: 32.0),
