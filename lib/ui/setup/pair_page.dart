@@ -45,11 +45,14 @@ class PairPage extends HookWidget implements CobbleScreen {
 
       pairedStorage.register(dev);
 
-      if (fromLanding) {
-        context.pushReplacement(MoreSetup());
-      } else {
-        context.pushReplacement(HomePage());
-      }
+      WidgetsBinding.instance.scheduleFrameCallback((timeStamp) {
+        if (fromLanding) {
+          context.pushReplacement(MoreSetup());
+        } else {
+          context.pushReplacement(HomePage());
+        }
+      });
+
       return null;
     }, [scan, pair]);
 
