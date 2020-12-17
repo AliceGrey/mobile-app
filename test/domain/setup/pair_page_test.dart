@@ -1,4 +1,6 @@
 import 'package:cobble/domain/entities/pebble_scan_device.dart';
+import 'package:cobble/infrastructure/pigeons/pair_provider.dart'
+    as pair_provider;
 import 'package:cobble/infrastructure/pigeons/scan_provider.dart'
     as scan_provider;
 import 'package:cobble/ui/common/icons/watch_icon.dart';
@@ -6,6 +8,7 @@ import 'package:cobble/ui/setup/pair_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/all.dart';
+import 'package:mockito/mockito.dart';
 
 final device = PebbleScanDevice(
   'Test',
@@ -34,16 +37,40 @@ class ScanCallbacks extends scan_provider.ScanCallbacks {
   }
 }
 
-Widget wrapper({ScanCallbacks mock}) => ProviderScope(
+class PairCallbacks extends pair_provider.PairCallbacks {
+  void pair(int address) {
+    this.state = address;
+  }
+}
+
+class Observer extends Mock implements NavigatorObserver {
+  // @override
+  // void didPush(Route route, Route previousRoute) {
+  //   print(route);
+  // }
+}
+
+Widget wrapper(
+        {ScanCallbacks scanMock,
+        PairCallbacks pairMock,
+        Observer navigatorObserver}) =>
+    ProviderScope(
       overrides: [
         scan_provider.scanProvider.overrideWithValue(
-          mock ?? ScanCallbacks(),
+          scanMock ?? ScanCallbacks(),
         ),
+        pair_provider.pairProvider.overrideWithValue(
+          pairMock ?? PairCallbacks(),
+        )
       ],
       child: MaterialApp(
+        navigatorObservers: [if (navigatorObserver != null) navigatorObserver],
         home: PairPage(
           fromLanding: true,
         ),
+        routes: {
+          '/moresetup': (_) => Container(),
+        },
       ),
     );
 
@@ -63,7 +90,7 @@ void main() {
     testWidgets('should display loader when scan starts', (tester) async {
       final mock = ScanCallbacks();
 
-      await tester.pumpWidget(wrapper(mock: mock));
+      await tester.pumpWidget(wrapper(scanMock: mock));
       mock.startScanning();
       await tester.pump();
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -72,7 +99,7 @@ void main() {
       final mock = ScanCallbacks();
 
       mock.startScanning();
-      await tester.pumpWidget(wrapper(mock: mock));
+      await tester.pumpWidget(wrapper(scanMock: mock));
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
       mock.stopScanning();
@@ -83,17 +110,32 @@ void main() {
       final mock = ScanCallbacks();
       mock.updateDevices(3);
 
-      await tester.pumpWidget(wrapper(mock: mock));
+      await tester.pumpWidget(wrapper(scanMock: mock));
       expect(find.byType(PebbleWatchIcon), findsNWidgets(3));
     });
     testWidgets('should update devices', (tester) async {
       final mock = ScanCallbacks();
       mock.updateDevices(3);
 
-      await tester.pumpWidget(wrapper(mock: mock));
+      await tester.pumpWidget(wrapper(scanMock: mock));
       mock.updateDevices(5);
       await tester.pump();
       expect(find.byType(PebbleWatchIcon), findsNWidgets(5));
+    });
+    testWidgets('should respond to paired device', (tester) async {
+      final scan = ScanCallbacks();
+      final pair = PairCallbacks();
+      final observer = Observer();
+      scan.updateDevices(1);
+
+      await tester.pumpWidget(wrapper(
+        scanMock: scan,
+        pairMock: pair,
+        navigatorObserver: observer,
+      ));
+      pair.pair(device.address);
+      await tester.pump();
+      verify(observer.didPush(any, any)).called(1);
     });
   });
 }
