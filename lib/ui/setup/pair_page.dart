@@ -174,7 +174,7 @@ class PairPage extends HookWidget implements CobbleScreen {
             textColor: Theme.of(context).accentColor,
             onPressed: _refreshDevicesClassic,
           ),
-          if (!fromLanding)
+          if (fromLanding)
             FlatButton(
               child: Text("SKIP"),
               padding: EdgeInsets.symmetric(horizontal: 32.0),
