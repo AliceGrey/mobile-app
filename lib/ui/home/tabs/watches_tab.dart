@@ -9,15 +9,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:cobble/infrastructure/pigeons/pigeons.g.dart';
 import 'package:cobble/domain/entities/pebble_scan_device.dart';
-import 'package:cobble/ui/common/icons/fonts/rebble_icons_stroke.dart';
-import 'package:cobble/ui/common/icons/watch_icon.dart';
 import 'package:cobble/ui/router/cobble_navigator.dart';
 import 'package:cobble/ui/router/cobble_scaffold.dart';
 import 'package:cobble/ui/setup/pair_page.dart';
-import 'package:flutter/material.dart';
 
-import '../../../domain/entities/pebble_device.dart';
-import '../../../domain/entities/pebble_device.dart';
 import '../../common/icons/fonts/rebble_icons_stroke.dart';
 
 class MyWatchesTab extends HookWidget {
@@ -198,12 +193,9 @@ class MyWatchesTab extends HookWidget {
           });
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("My Watches"),
-        leading: BackButton(),
-      ),
-      body: ListView(children: <Widget>[
+    return CobbleScaffold(
+      title: "My Watches",
+      child: ListView(children: <Widget>[
         Offstage(
             offstage: isConnected,
             child: Column(children: <Widget>[
@@ -348,7 +340,7 @@ class MyWatchesTab extends HookWidget {
                 .toList()),
       ]),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.pushNamed(context, '/pair'),
+        onPressed: () => context.push(PairPage()),
         label: Text('PAIR A WATCH'),
         icon: Icon(Icons.add),
       ),
