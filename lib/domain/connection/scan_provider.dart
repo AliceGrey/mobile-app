@@ -1,5 +1,5 @@
 import 'package:cobble/domain/entities/pebble_scan_device.dart';
-import 'package:cobble/infrastructure/pigeons/pigeons.dart' as pigeon;
+import 'package:cobble/infrastructure/pigeons/pigeons.g.dart' as pigeon;
 import 'package:hooks_riverpod/all.dart';
 
 /// Stores state of current scan operation. Devices can be empty array but

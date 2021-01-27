@@ -1,4 +1,4 @@
-import 'package:cobble/infrastructure/pigeons/pigeons.dart' as pigeon;
+import 'package:cobble/infrastructure/pigeons/pigeons.g.dart' as pigeon;
 import 'package:hooks_riverpod/all.dart';
 
 class PairCallbacks extends StateNotifier<int> implements pigeon.PairCallbacks {

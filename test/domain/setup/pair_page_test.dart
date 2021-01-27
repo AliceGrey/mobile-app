@@ -1,8 +1,6 @@
+import 'package:cobble/domain/connection/pair_provider.dart' as pair_provider;
+import 'package:cobble/domain/connection/scan_provider.dart' as scan_provider;
 import 'package:cobble/domain/entities/pebble_scan_device.dart';
-import 'package:cobble/infrastructure/pigeons/pair_provider.dart'
-    as pair_provider;
-import 'package:cobble/infrastructure/pigeons/scan_provider.dart'
-    as scan_provider;
 import 'package:cobble/ui/common/icons/watch_icon.dart';
 import 'package:cobble/ui/setup/pair_page.dart';
 import 'package:flutter/material.dart';

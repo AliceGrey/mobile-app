@@ -1,10 +1,10 @@
 import 'dart:ui';
 
+import 'package:cobble/domain/connection/pair_provider.dart';
+import 'package:cobble/domain/connection/scan_provider.dart';
 import 'package:cobble/domain/entities/pebble_scan_device.dart';
 import 'package:cobble/infrastructure/datasources/paired_storage.dart';
-import 'package:cobble/infrastructure/pigeons/pair_provider.dart';
 import 'package:cobble/infrastructure/pigeons/pigeons.g.dart';
-import 'package:cobble/infrastructure/pigeons/scan_provider.dart';
 import 'package:cobble/ui/common/icons/fonts/rebble_icons_stroke.dart';
 import 'package:cobble/ui/common/icons/watch_icon.dart';
 import 'package:cobble/ui/home/home_page.dart';
