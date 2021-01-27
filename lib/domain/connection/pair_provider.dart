@@ -1,21 +1,30 @@
+import 'dart:async';
+
 import 'package:cobble/infrastructure/pigeons/pigeons.g.dart' as pigeon;
 import 'package:hooks_riverpod/all.dart';
 
-class PairCallbacks extends StateNotifier<int> implements pigeon.PairCallbacks {
-  PairCallbacks() : super(null);
+class PairCallbacks implements pigeon.PairCallbacks {
+  final StreamController<int> streamController;
+
+  PairCallbacks(this.streamController);
 
   @override
   void onWatchPairComplete(pigeon.NumberWrapper arg) {
-    state = arg.value;
+    this.streamController.add(arg.value);
   }
 }
 
 /// Stores the address of device you are paired to. Can be null.
-final pairProvider = StateNotifierProvider<PairCallbacks>((ref) {
-  final notifier = PairCallbacks();
-  pigeon.PairCallbacks.setup(notifier);
+final pairProvider = StreamProvider<int>((ref) {
+  final StreamController<int> streamController = StreamController.broadcast();
+  ref.onDispose(() {
+    streamController.close();
+  });
+
+  pigeon.PairCallbacks.setup(PairCallbacks(streamController));
   ref.onDispose(() {
     pigeon.PairCallbacks.setup(null);
   });
-  return notifier;
+
+  return streamController.stream;
 });

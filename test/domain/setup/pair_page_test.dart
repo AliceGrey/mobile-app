@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cobble/domain/connection/pair_provider.dart' as pair_provider;
 import 'package:cobble/domain/connection/scan_provider.dart' as scan_provider;
 import 'package:cobble/domain/entities/pebble_scan_device.dart';
@@ -35,12 +37,6 @@ class ScanCallbacks extends scan_provider.ScanCallbacks {
   }
 }
 
-class PairCallbacks extends pair_provider.PairCallbacks {
-  void pair(int address) {
-    this.state = address;
-  }
-}
-
 class Observer extends Mock implements NavigatorObserver {
   // @override
   // void didPush(Route route, Route previousRoute) {
@@ -50,15 +46,18 @@ class Observer extends Mock implements NavigatorObserver {
 
 Widget wrapper(
         {ScanCallbacks scanMock,
-        PairCallbacks pairMock,
+        StreamProvider<int> pairMock,
         Observer navigatorObserver}) =>
     ProviderScope(
       overrides: [
         scan_provider.scanProvider.overrideWithValue(
           scanMock ?? ScanCallbacks(),
         ),
-        pair_provider.pairProvider.overrideWithValue(
-          pairMock ?? PairCallbacks(),
+        pair_provider.pairProvider.overrideWithProvider(
+          pairMock ??
+              StreamProvider<int>((ref) async* {
+                yield null;
+              }),
         )
       ],
       child: MaterialApp(
@@ -122,7 +121,8 @@ void main() {
     });
     testWidgets('should respond to paired device', (tester) async {
       final scan = ScanCallbacks();
-      final pair = PairCallbacks();
+      final StreamController<int> pairStream = StreamController.broadcast();
+      final pair = StreamProvider<int>((ref) => pairStream.stream);
       final observer = Observer();
       scan.updateDevices(1);
 
@@ -131,9 +131,10 @@ void main() {
         pairMock: pair,
         navigatorObserver: observer,
       ));
-      pair.pair(device.address);
+      pairStream.add(device.address);
       await tester.pump();
       verify(observer.didPush(any, any)).called(1);
+      pairStream.close();
     });
   });
 }

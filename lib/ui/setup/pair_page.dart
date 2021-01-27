@@ -31,7 +31,7 @@ class PairPage extends HookWidget implements CobbleScreen {
   Widget build(BuildContext context) {
     final pairedStorage = useProvider(pairedStorageProvider);
     final scan = useProvider(scanProvider.state);
-    final pair = useProvider(pairProvider.state);
+    final pair = useProvider(pairProvider).data?.value;
 
     useEffect(() {
       if (pair == null || scan.devices.isEmpty) return null;
