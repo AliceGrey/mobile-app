@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
 import android.widget.Toast
+import android.net.Uri
 import androidx.collection.ArrayMap
 import androidx.lifecycle.lifecycleScope
 import io.flutter.embedding.android.FlutterActivity
@@ -18,6 +19,13 @@ import io.rebble.cobble.datasources.PermissionChangeBus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.plus
 import java.net.URI
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.toolbox.Volley;
+import com.android.volley.toolbox.StringRequest;
+import org.json.JSONObject;
+
+
 
 @OptIn(ExperimentalUnsignedTypes::class)
 class MainActivity : FlutterActivity() {
@@ -74,6 +82,29 @@ class MainActivity : FlutterActivity() {
                         } catch (e: IllegalArgumentException) {
                             Toast.makeText(this, "Boot URL not updated, was invalid", Toast.LENGTH_LONG).show()
                         }
+                    }
+                    "appstore" -> {
+                        val uuid = URI.create(data.pathSegments[0])
+
+                        // Instantiate the RequestQueue.
+                        val queue = Volley.newRequestQueue(this)
+                        val url = "https://appstore-api.rebble.io/api/v1/apps/id/$uuid"
+
+                        // Request a string response from the provided URL.
+                        val stringRequest = StringRequest(Request.Method.GET, url,
+                                Response.Listener<String> { response ->
+                                    val jsonObject = JSONObject(response);
+                                    val jsonArray = jsonObject.getJSONArray("data");
+                                    val jo = jsonArray.getJSONObject(0);
+                                    val latest = jo.getJSONObject("latest_release");
+                                    val id = latest.get("id"); // get the release id
+                                    //download the release
+                                    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://pbws.rebble.io/pbw/$id.pbw"))
+                                    startActivity(browserIntent)
+                                },
+                                Response.ErrorListener { })
+                        // Add the request to the RequestQueue.
+                        queue.add(stringRequest)
                     }
                 }
             }
